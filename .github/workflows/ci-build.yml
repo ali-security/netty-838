@@ -33,7 +33,6 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     strategy:
-      fail-fast: false
       matrix:
         include:
           - setup: linux-x86_64-java11
@@ -61,6 +60,9 @@ jobs:
       - name: Build docker image
         run: docker compose ${{ matrix.docker-compose-build }}
 
+      - name: Build project without leak detection
+        run: docker compose ${{ matrix.docker-compose-run }} | tee build.output
+
       - name: Checking bom dependency versions
         run: ./.github/scripts/check_bom_dependencies.sh
 
@@ -69,7 +71,7 @@ jobs:
         if: cancelled()
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ failure() }}
         with:
           name: target
           path: |
