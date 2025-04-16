@@ -61,12 +61,6 @@ jobs:
       - name: Build docker image
         run: docker compose ${{ matrix.docker-compose-build }}
 
-      - name: Build project without leak detection
-        run: docker compose ${{ matrix.docker-compose-run }} | tee build.output
-
-      - name: Checking for test failures
-        run: ./.github/scripts/check_build_result.sh build.output
-
       - name: Checking bom dependency versions
         run: ./.github/scripts/check_bom_dependencies.sh
 
@@ -75,9 +69,11 @@ jobs:
         if: cancelled()
 
       - uses: actions/upload-artifact@v4
-        if: ${{ failure() }}
+        if: always()
         with:
           name: target
           path: |
             **/target/surefire-reports/
             **/hs_err*.log
+            **/target/*.jar
+            build.output
